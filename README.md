@@ -36,7 +36,7 @@ The primary goal of this package is to generate visually distinct color palettes
 - Maximizes the minimum distance between colors in RGB space
 - Provides multiple optimization approaches with different trade-offs
 - Supports constraints like fixed/prior colors
-- Works in both 2D and 3D color spaces
+- Works in both 2D (for visual experimentation) and 3D color spaces
 - Offers evaluation metrics and visualization tools
 
 ## Optimization Methods
