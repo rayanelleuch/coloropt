@@ -10,20 +10,11 @@ This package provides tools for generating well-distributed color palettes using
 - [Usage](#usage)
 - [Examples](#examples)
 - [Algorithms Comparison](#algorithms-comparison)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
 
-To install the package, clone the repository and install the required dependencies:
-
-```bash
-git clone <repository-url>
-cd color-optimization-pkg
-pip install -r requirements.txt
-```
-
-Alternatively, you can install the package directly using:
+To install the package, clone the repository and install the package directly using:
 
 ```bash
 pip install .
@@ -136,3 +127,8 @@ Check the `examples` directory for detailed usage examples:
 - **Gradient Descent**: When quality is critical and computation time is not a constraint
 - **Grid Sampling**: For a good balance between quality and computation time when using moderate sample sizes
 - **HSV Sampling**: When speed is paramount or when working with small palettes
+
+
+## License
+
+This package is distributed under the MIT License. See the [LICENSE](LICENSE) file for details.
