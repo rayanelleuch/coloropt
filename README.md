@@ -10,6 +10,7 @@ This package provides tools for generating well-distributed color palettes using
 - [Usage](#usage)
 - [Examples](#examples)
 - [Algorithms Comparison](#algorithms-comparison)
+- [Performance Comparison](#performance-comparison)
 - [License](#license)
 
 ## Installation
@@ -127,6 +128,16 @@ Check the `examples` directory for detailed usage examples:
 - **Gradient Descent**: When quality is critical and computation time is not a constraint
 - **Grid Sampling**: For a good balance between quality and computation time when using moderate sample sizes
 - **HSV Sampling**: When speed is paramount or when working with small palettes
+
+## Performance Comparison
+
+The following chart compares the minimum distance between colors for our different methods and the distinctipy package across varying palette sizes:
+
+![Comparison of minimum distances between colors](compare.png)
+
+As shown in the chart, our gradient descent and grid-based sampling methods generally achieve larger minimum distances between colors compared to HSV sampling and distinctipy.
+
+> **Note:** The grid approach's execution time increases linearly with the number of colors because the sample size was fixed in these benchmarks. There should be a way to optimize the sample size depending on the number of colors to achieve better performance-quality trade-offs.
 
 
 ## License
