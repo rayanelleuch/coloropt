@@ -30,6 +30,7 @@ The primary goal of this package is to generate visually distinct color palettes
 - Supports constraints like fixed/prior colors
 - Works in both 2D (for visual experimentation) and 3D color spaces
 - Offers evaluation metrics and visualization tools
+- Plans to add optimization and evaluation based on LAB color space using perceptual color difference metrics (CIEDE2000, CIE 1976, and other color comparison metrics)
 
 ## Optimization Methods
 
@@ -139,6 +140,7 @@ As shown in the chart, our gradient descent and grid-based sampling methods gene
 
 > **Note:** The grid approach's execution time increases linearly with the number of colors because the sample size was fixed in these benchmarks. There should be a way to optimize the sample size depending on the number of colors to achieve better performance-quality trade-offs.
 
+> **Coming Soon:** Evaluation using perceptual color difference metrics including CIEDE2000 and CIE 1976 to better assess the performance of each method based on human color perception rather than simple Euclidean distances in RGB space.
 
 ## License
 
