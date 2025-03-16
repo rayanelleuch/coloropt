@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coloropt"
+version = "0.1.0"
+description = "A package for color optimization using various algorithms including greedy and gradient descent approaches."
+authors = [
+    {name = "Rayan ELLEUCH", email = "rayan.elleuch@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["color", "optimization", "visualization"]
+dependencies = [
+    "numpy",
+    "torch",
+    "matplotlib",
+]
