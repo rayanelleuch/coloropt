@@ -95,7 +95,7 @@ Check the `examples` directory for detailed usage examples:
 - Works well in both 2D and 3D spaces
 
 **Cons:**
-- Most computationally expensive (O(n²) per iteration * number of iterations)
+- Computationally expensive (O(n²) per iteration * number of iterations)
 - Can get stuck in local minima
 - Requires parameter tuning (learning rate, alpha, iterations)
 
@@ -107,10 +107,10 @@ Check the `examples` directory for detailed usage examples:
 - Simpler implementation
 
 **Cons:**
+- Most computationally expensive with complexity O(m·n²) where m is sample size and n is number of colors
 - Quality depends on the grid density (sample size)
-- Can be very computationally intensive with large sample sizes (O(n·m) where m is sample size)
 - Memory intensive for high-density grids
-- May actually be slower than gradient descent when high sample sizes are used
+- Significantly slower than gradient descent for larger palettes
 
 ### HSV Sampling
 
