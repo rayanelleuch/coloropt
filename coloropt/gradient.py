@@ -205,6 +205,89 @@ def optimize_points_with_prior_gd(n_free, prior_coords, alpha=50.0, lr=0.01, n_i
     return best_points, best_loss_history, prior_indices
 
 
+def optimize_points_3d_with_prior(n_free, prior_coords, alpha=50.0, lr=0.01, n_iters=2000,
+                                  num_runs=1, domain=(0, 1), verbose=False):
+    """
+    Optimize 3D point positions with some fixed prior points.
+
+    Args:
+        n_free: Number of free points to optimize
+        prior_coords: List of (x,y,z) coordinates of fixed prior points
+        alpha: Sharpness parameter for the loss function
+        lr: Learning rate for optimization
+        n_iters: Number of iterations
+        num_runs: Number of optimization runs (best result will be returned)
+        domain: Tuple (min, max) defining the domain bounds
+        verbose: Whether to print progress
+
+    Returns:
+        Tuple of (all points including both optimized and prior, loss history, indices of prior points)
+    """
+    prior_points = torch.tensor(prior_coords, dtype=torch.float32)
+    n_prior = prior_points.shape[0]
+    dim = 3 # Ensure 3D
+    if prior_points.shape[1] != dim:
+        raise ValueError(f"prior_coords must be 3-dimensional, got shape {prior_points.shape}")
+
+    best_points = None
+    best_min_dist = -1
+    best_loss_history = []
+    domain_min, domain_max = domain
+    domain_range = domain_max - domain_min
+
+    for run in range(num_runs):
+        # Initialize n_free points randomly in the 3D domain
+        free_points = torch.rand(n_free, dim) * domain_range + domain_min
+        free_points.requires_grad = True
+        optimizer = torch.optim.Adam([free_points], lr=lr)
+        loss_history = []
+
+        for it in range(n_iters):
+            optimizer.zero_grad()
+
+            # Combine free and prior points for loss computation
+            all_points = torch.cat([free_points, prior_points], dim=0)
+
+            # Calculate loss using the compute_loss function
+            loss = compute_loss(all_points, alpha)
+
+            # Backward pass and optimization step
+            loss.backward()
+            optimizer.step()
+
+            # Project points back to domain
+            with torch.no_grad():
+                free_points.data.clamp_(domain_min, domain_max)
+
+            # Record loss
+            current_loss = loss.item()
+            loss_history.append(current_loss)
+
+            # Optional progress reporting
+            if verbose and (it + 1) % 100 == 0:
+                print(f"Run {run+1}, Iteration {it+1}/{n_iters}, Loss: {current_loss:.4f}")
+
+        # Calculate minimum distance for this run
+        final_free_points = free_points.detach().cpu().numpy()
+        final_all_points = np.vstack([final_free_points, prior_points.numpy()])
+        from .core import calculate_min_distance
+        min_dist = calculate_min_distance(final_all_points)
+
+        if verbose:
+            print(f"Run {run+1} completed - Min distance: {min_dist:.4f}")
+
+        if min_dist > best_min_dist:
+            best_min_dist = min_dist
+            best_points = final_all_points
+            best_loss_history = loss_history
+            if verbose:
+                print(f"New best configuration found: {min_dist:.4f}")
+
+    # Return all points and indices of the prior points
+    prior_indices = list(range(n_free, n_free + n_prior))
+    return best_points, best_loss_history, prior_indices
+
+
 def optimize_points_3d(n_points, alpha=50.0, lr=0.01, n_iters=2000, num_runs=1, domain=(0, 1)):
     """Run 3D point optimization for RGB colors
     

@@ -73,6 +73,9 @@ def farthest_point_sampling_rgb(n, sample_size=50000, prior_colors=None):
         (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         for _ in range(sample_size)
     ]
+    # Filter candidates to remove any that are identical to prior colors
+    prior_set = set(prior_colors)
+    candidates = [c for c in candidates if c not in prior_set]
 
     # 2) Start with the prior colors
     chosen = list(prior_colors)  # copy so we don't mutate the original list
@@ -104,26 +107,44 @@ def farthest_point_sampling_rgb(n, sample_size=50000, prior_colors=None):
     return chosen
 
 
-def get_hsv_colors(n, saturation=1.0, value=1.0):
+def get_hsv_colors(n, saturation=1.0, value=1.0, prior_colors=None):
     """
-    Returns n colors spaced evenly around the HSV hue,
-    converting to (R,G,B) in [0..255].
-    
+    Returns n colors, including prior_colors if provided.
+    New colors are spaced evenly around the HSV hue circle.
+
     Parameters:
       n: int
-          Number of colors to generate
+          Total number of colors desired
       saturation: float
-          Saturation value in [0, 1]
+          Saturation value in [0, 1] for new colors
       value: float
-          Value/brightness in [0, 1]
-    
+          Value/brightness in [0, 1] for new colors
+      prior_colors: list of (R, G, B)
+          Optional list of prior colors to include
+
     Returns:
       colors: list of (R, G, B)
-          The list of evenly spaced colors
+          The list of n colors, including priors
     """
-    colors = []
-    for i in range(n):
-        hue = i / n  # Evenly spaced hues in [0,1)
-        r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
-        colors.append((int(r*255), int(g*255), int(b*255)))
-    return colors
+    if prior_colors is None:
+        prior_colors = []
+    
+    num_prior = len(prior_colors)
+    if num_prior > n:
+        raise ValueError("Number of prior_colors exceeds n.")
+    
+    num_new_colors = n - num_prior
+    
+    new_colors = []
+    if num_new_colors > 0:
+        for i in range(num_new_colors):
+            # Evenly space the *new* colors
+            hue = i / num_new_colors
+            r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+            new_colors.append((int(r*255), int(g*255), int(b*255)))
+            
+    # Combine prior colors with new colors
+    # Make a copy of prior_colors to avoid modifying the original list
+    combined_colors = list(prior_colors) + new_colors
+    
+    return combined_colors

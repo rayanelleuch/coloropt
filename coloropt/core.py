@@ -111,9 +111,11 @@ def compare_and_select_best_palette(n_colors, method_params=None, prior_colors=N
             - metrics (dict): Performance metrics for the best method
     """
     import time
+
     import numpy as np
-    from .grid import farthest_point_sampling_rgb, get_hsv_colors
+
     from .gradient import optimize_points_3d
+    from .grid import farthest_point_sampling_rgb, get_hsv_colors
     from .visualization import convert_points_to_rgb
     
     if methods is None:
@@ -153,31 +155,59 @@ def compare_and_select_best_palette(n_colors, method_params=None, prior_colors=N
             
             # Handle prior colors for GD
             if prior_colors:
-                prior_points = np.array(prior_colors) / 255.0  # Normalize to [0,1]
+                prior_points_norm = np.array(prior_colors) / 255.0  # Normalize to [0,1]
                 n_free = n_colors - len(prior_colors)
-                # Note: optimize_points_3d needs to be extended to support prior points
-                # This is a placeholder for that functionality
-                points_3d = optimize_points_3d(n_colors, alpha=alpha, lr=lr, n_iters=n_iters, num_runs=num_runs)
+                if n_free < 0:
+                    raise ValueError("Number of prior_colors exceeds n_colors for GD method.")
+                if n_free == 0:
+                    # Only prior colors requested
+                    points_3d = prior_points_norm
+                else:
+                    # Import the function that handles priors
+                    from .gradient import optimize_points_3d_with_prior
+
+                    # Optimize only the free points, keeping priors fixed
+                    points_3d, _, _ = optimize_points_3d_with_prior(
+                        n_free=n_free,
+                        prior_coords=prior_points_norm.tolist(), # Pass priors as list
+                        alpha=alpha,
+                        lr=lr,
+                        n_iters=n_iters,
+                        num_runs=num_runs,
+                        domain=(0, 1),
+                        verbose=verbose # Pass verbosity
+                    )
             else:
+                # No prior colors, optimize all points
                 points_3d = optimize_points_3d(n_colors, alpha=alpha, lr=lr, n_iters=n_iters, num_runs=num_runs)
             
+            # points_3d now contains the final combined set (optimized + prior)
+            # or just optimized points if no priors were given.
             colors = convert_points_to_rgb(points_3d)
             
         elif method == 'hsv':
             # HSV color space sampling
             saturation = params.get('saturation', 0.85)
             value = params.get('value', 0.85)
-            colors = get_hsv_colors(n=n_colors, saturation=saturation, value=value, 
-            # prior_colors=prior_colors
-            )
+            # get_hsv_colors now handles prior_colors internally
+            colors = get_hsv_colors(n=n_colors, saturation=saturation, value=value,
+                                    prior_colors=prior_colors)
+            # Ensure we have exactly n_colors if priors were involved
+            if len(colors) != n_colors:
+                 # This case should ideally be handled within get_hsv_colors,
+                 # but as a safeguard:
+                 print(f"Warning: HSV method returned {len(colors)} colors, expected {n_colors}. Using the returned set.")
+
+            # Convert the final list (including priors) to points for evaluation
             points_3d = np.array(colors) / 255.0  # Normalize to [0,1]
         
         elapsed_time = time.time() - start_time
         
-        # Evaluate the color distribution
+        # Evaluate the color distribution using the final points_3d
+        # which now correctly includes priors for all methods that support them.
         min_dist, all_dists = compute_min_distances(points_3d)
-        mean_dist = np.mean(all_dists)
-        median_dist = np.median(all_dists)
+        mean_dist = np.mean(all_dists) if len(all_dists) > 0 else 0
+        median_dist = np.median(all_dists) if len(all_dists) > 0 else 0
         
         results[method] = {
             'colors': colors,
