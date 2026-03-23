@@ -18,3 +18,7 @@ dependencies = [
     "torch",
     "matplotlib",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["coloropt*"]
